@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+#bip bip
+
+ifconfig | grep 'inet ' | awk '{print $2}'
