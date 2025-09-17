@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 #bip bip
-
 sudo sed -i '/127\.0\.0\.1\s\+/localhost/d' /etc/hosts
 sudo sed -i '/facebook\.com/d' /etc/hosts
 
