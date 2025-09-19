@@ -1,8 +1,25 @@
 #!/usr/bin/env bash
-#bip bip
+# Configure /etc/hosts so localhost -> 127.0.0.2 and facebook.com -> 8.8.8.8 (idempotent, IPv6-safe)
 
-sudo sed -i '/127\.0\.0\.1\s\+/localhost/d' /etc/hosts
-sudo sed -i '/facebook\.com/d' /etc/hosts
+set -euo pipefail
+IFS=$'\n\t'
 
-echo "127.0.0.2 localhost" >> /etc/hosts
-echo "8.8.8.8 facebook.com" >> /etc/hosts
+tmp="$(mktemp)"
+# 1) repartir de /etc/hosts en retirant les tokens 'localhost' et 'facebook.com' (y compris sur ::1)
+awk '
+  /^[[:space:]]*#/ { print; next }
+  {
+    out=$1
+    for (i=2; i<=NF; i++) {
+      if ($i != "localhost" && $i != "facebook.com") out=out" "$i
+    }
+    print out
+  }
+' /etc/hosts > "$tmp"
+
+# 2) préfixer nos deux mappages pour leur donner la priorité
+{ printf '127.0.0.2 localhost\n8.8.8.8 facebook.com\n'; cat "$tmp"; } > "${tmp}.new"
+
+# 3) remplacer silencieusement
+cp "${tmp}.new" /etc/hosts
+rm -f "$tmp" "${tmp}.new"
